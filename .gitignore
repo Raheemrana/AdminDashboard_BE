@@ -1,1 +1,7 @@
 __pycache__/main.cpython-310.pyc
+__pycache__/database.cpython-310.pyc
+__pycache__/models.cpython-310.pyc
+__pycache__/schemas.cpython-310.pyc
+Routes/__pycache__/category.cpython-310.pyc
+Routes/__pycache__/inventory.cpython-310.pyc
+Routes/__pycache__/product.cpython-310.pyc
