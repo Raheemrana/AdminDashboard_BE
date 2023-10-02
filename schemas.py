@@ -1,4 +1,5 @@
 # schemas.py
+from datetime import datetime
 from pydantic import BaseModel
 
 
@@ -19,7 +20,17 @@ class Category(BaseModel):
 class Product(BaseModel):
     name: str
     price: int
-    category_id: int
+    category_id: int | None = None
+    category_name: str | None = None
+
+    class Config:
+        orm_mode = True
+
+
+class InventoryInsights(BaseModel):
+    product_id: int
+    quantity: int
+    date: datetime | None = None
 
     class Config:
         orm_mode = True
