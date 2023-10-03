@@ -44,25 +44,32 @@ productsData : List[schemas.Product] = [
     schemas.Product(name="Socks", price=230, category_name="Clothing and Apparel")
 ]
 
+@router.post("/dumpproduct")
+async def dumpProducts(db: db_dependency):
+    try:
+        counter: int = 0
+        for product in productsData:
+            categoryId = db.query(models.Category).filter_by(name = product.category_name).first().id
+            if categoryId == None:
+                print(f"{categoryId}, doesn't exist")
+                continue
+            counter =  counter + 1
+            db.add(models.Product(name = product.name, price=product.price, category_id= categoryId))
+        db.commit()
+    except Exception as e:
+        return {f"Error encountered while dumping products, {e}"}
+    else: 
+        return {
+            "message":"Products dumped Successfully",
+            "count": len(productsData)
+        }
+
 @router.post("/product")
 async def postProduct(name: str, category_id: int, db: db_dependency):
     product = schemas.Product(name="Ketchup", price=45, category_id=category_id)
     db.add(models.Product(**product.dict()))
     db.commit()
     return name
-
-@router.post("/dumpproduct")
-async def dumpProducts(db: db_dependency):
-    counter: int = 0
-    for product in productsData:
-        categoryId = db.query(models.Category).filter_by(name = product.category_name).first().id
-        if categoryId == None:
-            print(f"{categoryId}, doesn't exist")
-            continue
-        counter =  counter + 1
-        db.add(models.Product(name = product.name, price=product.price, category_id= categoryId))
-    db.commit()
-    return str(counter) + " products has been added"
 
 @router.get("/products")
 async def getProducts(db: db_dependency):

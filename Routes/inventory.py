@@ -51,14 +51,21 @@ inventoryData : List[schemas.InventoryInsights] = [
 
 @router.post("/dumpinventory")
 async def dumpInventory(db: db_dependency):
-    for inventory in inventoryData:
-        randomQuantity = random.randint(5,30)
-        inventory.quantity = randomQuantity
-        inventory_model = models.InventoryInsights(**inventory.dict())
-        syncwithInventory(inventory_model.product_id, inventory_model.quantity,db)
-        db.add(inventory_model)
-    db.commit()
-    return inventoryData
+    try:
+        for inventory in inventoryData:
+            randomQuantity = random.randint(5,30)
+            inventory.quantity = randomQuantity
+            inventory_model = models.InventoryInsights(**inventory.dict())
+            syncwithInventory(inventory_model.product_id, inventory_model.quantity,db)
+            db.add(inventory_model)
+        db.commit()
+    except Exception as e:
+        return {f"Error encountered while dumping inventory, {e}"}
+    else: 
+        return {
+            "message":"Inventory Insights dumped Successfully",
+            "count": len(inventoryData)
+        }
 
 @router.get("/inventoryinsigts")
 async def getInventory(db: db_dependency):

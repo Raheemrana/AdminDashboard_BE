@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
 from typing import Annotated, List
-from sqlalchemy import extract, func
 from sqlalchemy.orm import Session, joinedload
 from database import get_db
 import schemas
@@ -20,6 +19,21 @@ categoriesData: List[schemas.Category] = [
 
 ]
 
+@router.post("/dumpcategories")
+async def dumpCategories(db: db_dependency):
+    try:
+        for category in categoriesData:
+            modelCategory = models.Category(**category.dict())
+            db.add(modelCategory)
+        db.commit()
+    except Exception as e:
+        return {f"Error encountered while dumping categories, {e}"}
+    else: 
+        return {
+            "message":"Categories dumped Successfully",
+            "count": len(categoriesData)
+        }
+
 @router.get("/categories")
 async def getCategories(db: db_dependency):
     categories = db.query(models.Category).\
@@ -34,14 +48,6 @@ async def postCategory(category:schemas.Category, db: db_dependency):
     db.commit()
     return modelCategory.id
 
-@router.post("/dumpcategories")
-async def dumpCategories(db: db_dependency):
-    for category in categoriesData:
-        modelCategory = models.Category(**category.dict())
-        db.add(modelCategory)
-    db.commit()
-    return categoriesData
-
 @router.delete("/category")
 async def deleteCategories(name: str, db: db_dependency):
     category_to_delete = db.query(models.Category).filter(models.Category.name == name).first()
@@ -52,19 +58,3 @@ async def deleteCategories(name: str, db: db_dependency):
     else:
         return f"Category with name {name} not found"
 
-@router.get("/sales-by-month")
-async def get_sales_by_month(db: db_dependency):
-    # Get sales data for the whole year divided by month
-    sales_by_month = (
-        db.query(
-            extract('year', models.Sales.date).label('year'),
-            extract('month', models.Sales.date).label('month'),
-            func.sum(models.Sales.total_price).label('total_sales')
-        )
-        .filter(extract('year', models.Sales.date) == 2023)  # Specify the desired year
-        .group_by(extract('year', models.Sales.date), extract('month', models.Sales.date))
-        .order_by('year', 'month')
-        .all()
-    )
-
-    return sales_by_month

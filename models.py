@@ -5,7 +5,7 @@ from database import Base
 
 #   enums
 class Gender(PyEnum):
-    Make = "Make"
+    Male = "Male"
     Female = "Female"
 
 class Transation(PyEnum):
@@ -13,8 +13,6 @@ class Transation(PyEnum):
     InShop = "InShop"
 
 #   models 
-    
-
 class Customer(Base):
     __tablename__ = 'customer'
     id = Column(Integer, primary_key=True)
@@ -59,6 +57,7 @@ class Invoice(Base):
     amount = Column(Float, nullable=False)
     date = Column(DateTime)
     customer_id = Column(Integer, ForeignKey('customer.id'), nullable=False)
+    #relationships
     customer = relationship("Customer", back_populates="invoices")
     sales = relationship("Sales", back_populates="invoice", cascade='all, delete-orphan')
 
