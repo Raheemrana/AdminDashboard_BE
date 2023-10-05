@@ -81,3 +81,8 @@ async def getProductByID(id:int, db: db_dependency):
     if product is None:
         raise HTTPException(status_code=400, detail="Product Not Found")
     return {"productName": product.name, "categoryName": product.category.name}
+
+
+@router.get("/products-dropdown")
+async def getProductsDropdown(db: db_dependency):
+    return db.query(models.Product.id.label('key'),models.Product.name.label('value')).all()

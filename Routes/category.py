@@ -58,3 +58,6 @@ async def deleteCategories(name: str, db: db_dependency):
     else:
         return f"Category with name {name} not found"
 
+@router.get("/categories-dropdown")
+async def getCategoriesDropdown(db: db_dependency):
+    return db.query(models.Category.id.label('key'),models.Category.name.label('value')).all()

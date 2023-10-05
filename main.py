@@ -6,7 +6,18 @@ from database import db_engine, SessionLocal, get_db
 from schemas import Customer
 from sqlalchemy.orm import Session
 from Routes import inventory, product, category, customer, sale
+from fastapi.middleware.cors import CORSMiddleware
+
+
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],  # Replace with the actual origin of your React app
+    allow_credentials=True,
+    allow_methods=["*"],  # You can specify specific HTTP methods if needed
+    allow_headers=["*"],  # You can specify specific headers if needed
+)
 
 models.Base.metadata.create_all(bind=db_engine)
 
