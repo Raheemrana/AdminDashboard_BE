@@ -45,7 +45,7 @@ async def postCustomer(data:schemas.Customer, db: db_dependency):
 
 @router.get("/customers")
 async def getCustomers(db: db_dependency):
-    customers = db.query(models.Customer).all()
+    customers = db.query(models.Customer.id, models.Customer.name, models.Customer.age, models.Customer.gender).all()
     return customers
 
 @router.get("/customer/{id}")

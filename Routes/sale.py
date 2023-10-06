@@ -88,14 +88,62 @@ async def get_sales_by_year(db: db_dependency):
 
 @router.get("/sales-by-gender")
 async def get_sales_by_gender(db: db_dependency):
-    sales_by_gender = db.query(models.Customer.gender, func.count(models.Sales.id)).\
+    sales_by_gender = db.query(models.Customer.gender.label("gender"), func.count(models.Sales.id).label("sales")).\
     join(models.Invoice, models.Customer.id == models.Invoice.customer_id).\
     join(models.Sales, models.Invoice.id == models.Sales.invoice_id).\
     group_by(models.Customer.gender).all()
+
+    totalSales = sales_by_gender[0]["sales"] + sales_by_gender[1]["sales"]
     result = []
-    for gender, sales_count in sales_by_gender:
-        result.append(f"Gender: {gender}, Sales Count: {sales_count}")
-    return result
+    genders = [x["gender"] for x in sales_by_gender]
+    sales = [round(x["sales"]/totalSales * 100,1) for x in sales_by_gender]
+    return {
+        "labels": genders,
+        "dataset": sales
+    }
+
+@router.get("/sales-by-age-brackets")
+async def get_sales_by_age_brackets(db: db_dependency):
+    # Define age brackets (adjust these according to your requirements)
+    age_brackets = [
+        {"min": 18, "max": 24, "label": "18-24"},
+        {"min": 25, "max": 34, "label": "25-34"},
+        {"min": 35, "max": 44, "label": "35-44"},
+        {"min": 45, "max": 54, "label": "45-54"},
+        {"min": 55, "max": 64, "label": "55-64"},
+        {"min": 65, "max": 100, "label": "65+"}
+    ]
+
+    sales_by_age_brackets = []
+    total_sales = 0
+
+    # Query sales data and calculate sales by age brackets
+    for bracket in age_brackets:
+        min_age, max_age = bracket["min"], bracket["max"]
+        sales_count = (
+            db.query(func.count(models.Sales.id))
+            .join(models.Invoice, models.Invoice.id == models.Sales.invoice_id)
+            .join(models.Customer, models.Customer.id == models.Invoice.customer_id)
+            .filter(models.Customer.age >= min_age)
+            .filter(models.Customer.age <= max_age)
+            .scalar()
+        )
+        total_sales += sales_count
+        sales_by_age_brackets.append({"age_bracket": bracket["label"], "sales": sales_count})
+
+    # Calculate sales percentage for each age bracket
+    dataset = [
+        round((sale["sales"] / total_sales) * 100, 1) if total_sales > 0 else 0
+        for sale in sales_by_age_brackets
+    ]
+
+    # Extract age bracket labels
+    labels = [bracket["age_bracket"] for bracket in sales_by_age_brackets]
+
+    return {
+        "labels": labels,
+        "dataset": dataset
+    }
 
 @router.get("/sales-by-day")
 async def get_sales_by_day(db: db_dependency):
@@ -110,6 +158,24 @@ async def get_sales_by_day(db: db_dependency):
     )
     return sales_by_day
 
+@router.get("/sales-by-transaction")
+async def get_sales_by_transaction(db: db_dependency):
+    sales_by_transaction = (
+        db.query(
+            func.count(models.Sales.id).label('sales'),
+            (models.Invoice.transaction_type).label('transaction_type')).\
+            join(models.Invoice, models.Invoice.id == models.Sales.invoice_id)
+        .group_by(models.Invoice.transaction_type)
+        .order_by(models.Invoice.transaction_type)
+        .all()
+    )
+    labels = [x["transaction_type"] for x in sales_by_transaction]
+    sales = [x["sales"] for x in sales_by_transaction]
+    return {
+        "labels": labels,
+        "dataset": sales
+    }
+
 @router.get("/sales-by-filters")
 async def get_sales_by_filter(db: db_dependency,startDate: str | None = None, endDate: str | None = None, category_id: int = 0, product_id: int = 0, span: spanType | None = 'day'):
     
@@ -117,7 +183,9 @@ async def get_sales_by_filter(db: db_dependency,startDate: str | None = None, en
         query = (
         db.query(
             func.date(models.Sales.date).label('date'),
-            func.sum(models.Sales.total_price).label('total_sales')
+            func.sum(models.Sales.total_price).label('total_sales'),
+            func.count(models.Sales.id).label('sales_count'),
+            func.sum(models.Sales.quantity).label('total_units'),
         )
         .join(models.Product, models.Sales.product_id == models.Product.id)
         .join(models.Category, models.Product.category_id == models.Category.id)
@@ -129,7 +197,9 @@ async def get_sales_by_filter(db: db_dependency,startDate: str | None = None, en
         db.query(
             extract('year', models.Sales.date).label('year'),
             extract('month', models.Sales.date).label('month'),
-            func.sum(models.Sales.total_price).label('total_sales')
+            func.sum(models.Sales.total_price).label('total_sales'),
+            func.count(models.Sales.id).label('sales_count'),
+            func.sum(models.Sales.quantity).label('total_units'),
         )
         .join(models.Product, models.Sales.product_id == models.Product.id)
         .join(models.Category, models.Product.category_id == models.Category.id)
@@ -140,7 +210,9 @@ async def get_sales_by_filter(db: db_dependency,startDate: str | None = None, en
         query = (
         db.query(
             extract('year', models.Sales.date).label('year'),
-            func.sum(models.Sales.total_price).label('total_sales')
+            func.sum(models.Sales.total_price).label('total_sales'),
+            func.count(models.Sales.id).label('sales_count'),
+            func.sum(models.Sales.quantity).label('total_units'),
         )
         .join(models.Product, models.Sales.product_id == models.Product.id)
         .join(models.Category, models.Product.category_id == models.Category.id)
@@ -160,17 +232,24 @@ async def get_sales_by_filter(db: db_dependency,startDate: str | None = None, en
         query = query.filter(models.Sales.date <= endDate)
 
     data = query.all()
+    print (data)
     if span == spanType.day:
         labels = [el["date"] for el in data]
         dataset = [el["total_sales"] for el in data]
+        salesCount = [el["sales_count"] for el in data]
+        totalUnits = [el["total_units"] for el in data]
     elif span == spanType.month:
         labels = [str(el["year"]) +"-"+ str(el["month"]) for el in data]
         dataset = [el["total_sales"] for el in data]
+        salesCount = [el["sales_count"] for el in data]
+        totalUnits = [el["total_units"] for el in data]
     else:
         labels = [el["year"] for el in data]
         dataset = [el["total_sales"] for el in data]
+        salesCount = [el["sales_count"] for el in data]
+        totalUnits = [el["total_units"] for el in data]
     
-    return {"labels": labels, "dataset":dataset}
+    return {"labels": labels, "dataset":dataset, "totalSalesCount": sum(salesCount), "totalUnits" : sum(totalUnits), "totalRevenue": sum(dataset)}
 
 #methods
 

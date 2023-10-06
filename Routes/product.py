@@ -65,15 +65,24 @@ async def dumpProducts(db: db_dependency):
         }
 
 @router.post("/product")
-async def postProduct(name: str, category_id: int, db: db_dependency):
-    product = schemas.Product(name="Ketchup", price=45, category_id=category_id)
-    db.add(models.Product(**product.dict()))
+async def postProduct(name: str, price: int, category_id: int, db: db_dependency):
+    db.add(models.Product(name= name, price=price, category_id=category_id))
     db.commit()
-    return name
+    return name + " product successfully added"
 
 @router.get("/products")
 async def getProducts(db: db_dependency):
-    return db.query(models.Product).all()
+    products = db.query(models.Product).options(joinedload(models.Product.category)).all()
+    results = [
+        {
+            "id": product.id,
+            "name": product.name,
+            "price": product.price,
+            "category_name": product.category.name if product.category else None
+        }
+        for product in products
+    ]
+    return results
 
 @router.get("/products/{id}", status_code=200)
 async def getProductByID(id:int, db: db_dependency):
