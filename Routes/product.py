@@ -12,7 +12,10 @@ router = APIRouter(tags=["Products"])
 
 @router.post("/product")
 async def postProduct(name: str, price: int, category_id: int, db: db_dependency):
-    db.add(models.Product(name= name, price=price, category_id=category_id))
+    product = models.Product(name= name, price=price, category_id=category_id)
+    db.add(product)
+    db.commit()
+    db.add(models.Inventory(product_id= product.id, stock = 0))
     db.commit()
     return name + " product successfully added"
 

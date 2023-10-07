@@ -39,8 +39,12 @@ async def dumpInventory(db: db_dependency):
         }
 
 @router.get("/inventoryinsigts")
-async def getInventory(db: db_dependency):
-    inventory = db.query(models.InventoryInsights).all()
+async def getInventoryInsights(db: db_dependency):
+    query = update(models.Product).filter_by(id = 12).values({models.Product.name: "Dark Side Of Mind"})
+    db.execute(query)
+    db.commit()
+    inventory = db.query(models.Product.id.label('product_id'), models.Product.name,models.InventoryInsights.quantity, models.InventoryInsights.date).\
+    join(models.Product, models.InventoryInsights.product_id == models.Product.id).order_by(models.InventoryInsights.date.desc()).all()
     return inventory
 
 @router.get("/inventory")
@@ -69,6 +73,7 @@ async def postInventoryInsights(data: schemas.InventoryInsights, db: db_dependen
     syncwithInventory(inventory_model.product_id, inventory_model.quantity, db)
     db.add(inventory_model)
     db.commit()
+
 
 @router.get("/totalInventory")
 async def totalInventory(db:db_dependency):
