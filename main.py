@@ -5,7 +5,7 @@ import models
 from database import db_engine, SessionLocal, get_db
 from schemas import Customer
 from sqlalchemy.orm import Session
-from Routes import inventory, product, category, customer, sale
+from Routes import inventory, product, category, customer, sale, dumpDummyData
 from fastapi.middleware.cors import CORSMiddleware
 
 
@@ -27,8 +27,9 @@ db_dependency = Annotated[Session, Depends(get_db)]
 async def root():
     return {"message": "Hello World"}
 
-app.include_router(inventory.router)
-app.include_router(product.router)
+app.include_router(dumpDummyData.router)
 app.include_router(category.router)
+app.include_router(product.router)
+app.include_router(inventory.router)
 app.include_router(customer.router)
 app.include_router(sale.router)

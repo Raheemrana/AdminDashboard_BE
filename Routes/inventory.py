@@ -15,14 +15,15 @@ router = APIRouter(tags=["Inventory"])
 @router.post("/dumpinventory")
 async def dumpInventory(db: db_dependency):
     try:
-        count = random.randint()
-        for count in range(0,count):
-            # any random product among 33 products
-            randomProduct = random.randint(1,33)
+        count = random.randint(1,10)
+        for counter in range(0,count):
+            # any random product among products
+            ProducsCount = db.query(func.count(models.Product.id)).scalar()
+            randomProduct = random.randint(1,ProducsCount)
             # random quantity for each inventory
             randomQuantity = random.randint(5,30)
             #random date
-            randomDatestring = '2023' + random.randint(1,12) + random.randint(1,30)
+            randomDatestring = '2023-' + str(random.randint(1,12)) + '-' + str(random.randint(1,30))
             randomDate = datetime.strptime(randomDatestring, '%Y-%m-%d')
             
             inventory_model = models.InventoryInsights(product_id=randomProduct, quantity=randomQuantity, date=randomDate)
@@ -34,10 +35,8 @@ async def dumpInventory(db: db_dependency):
         return {f"Error encountered while dumping inventory, {e}"}
     else: 
         return {
-            "message":"Inventory Insights dumped Successfully",
-            "count": len(count)
+            "message":"Random Inventory Insights dumped Successfully",
         }
-
 
 @router.get("/inventoryinsigts")
 async def getInventory(db: db_dependency):

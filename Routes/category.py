@@ -8,31 +8,8 @@ import models
 db_dependency = Annotated[Session, Depends(get_db)]
 
 router = APIRouter(tags=["Category"])
-    
-categoriesData: List[schemas.Category] = [
-    schemas.Category(name="Bakery"),
-    schemas.Category(name="Books and Magazines"),
-    schemas.Category(name="Electronics"),
-    schemas.Category(name="Sports"),
-    schemas.Category(name="Gadgets"),
-    schemas.Category(name="Clothing and Apparel")
 
-]
-
-@router.post("/dumpcategories")
-async def dumpCategories(db: db_dependency):
-    try:
-        for category in categoriesData:
-            modelCategory = models.Category(**category.dict())
-            db.add(modelCategory)
-        db.commit()
-    except Exception as e:
-        return {f"Error encountered while dumping categories, {e}"}
-    else: 
-        return {
-            "message":"Categories dumped Successfully",
-            "count": len(categoriesData)
-        }
+# this is the dummy data to load at first application run
 
 @router.get("/categories")
 async def getCategories(db: db_dependency):

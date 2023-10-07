@@ -9,37 +9,37 @@ from sqlalchemy.orm import Session, joinedload
 from database import get_db
 import schemas
 import models
-from . import customer
-from . import product
 
 db_dependency = Annotated[Session, Depends(get_db)]
 
 router = APIRouter(tags=["Sales"])
 
-# lets do it
-customersNames = [x.name for x in customer.customersData]
-productNames = [x.name for x in product.productsData]
 invoicesList : schemas.Receipt = []
 total_sales = 0
 class spanType(Enum):
     day = "day"
+    week = "week"
     month = "month"
     year = "year"
 
+#routes
 
 @router.post("/dumpSales")
 async def dumpSales(db:db_dependency):
     try:
-        makeRandomSales()
+        makeRandomSalesData(db)
         dumpRandomsales(db)
     except Exception as e:
-        return {f"Error encountered while dumping invoices and sales, {e}"}
+        return {f"Error encountered while dumping invoices and sales, {e}, {traceback.print_exc()} "}
     else: 
         response = {
-            "message":"Inventory Insights dumped Successfully",
-            "count": "Invoices = " + str(len(invoicesList)) + " Sales = " + str(total_sales)
+            "message":"Random Sales dumped successfully",
         }
         return response
+    
+def dumpData(db:db_dependency):
+    makeRandomSalesData(db)
+    dumpRandomsales(db)
 
 @router.get("/invoices")
 async def getInvoices(db: db_dependency):
@@ -206,7 +206,7 @@ async def get_sales_by_filter(db: db_dependency,startDate: str | None = None, en
         .group_by(extract('year', models.Sales.date), extract('month', models.Sales.date))
         .order_by('year', 'month')
     )
-    else:
+    elif span == spanType.year:
         query = (
         db.query(
             extract('year', models.Sales.date).label('year'),
@@ -219,6 +219,21 @@ async def get_sales_by_filter(db: db_dependency,startDate: str | None = None, en
         .group_by(extract('year', models.Sales.date))
         .order_by('year')
     )
+    else:
+        query = (
+        db.query(
+            extract('year', models.Sales.date).label('year'),
+            extract('week', models.Sales.date).label('week'),
+            func.sum(models.Sales.total_price).label('total_sales'),
+            func.count(models.Sales.id).label('sales_count'),
+            func.sum(models.Sales.quantity).label('total_units'),
+        )
+        .join(models.Product, models.Sales.product_id == models.Product.id)
+        .join(models.Category, models.Product.category_id == models.Category.id)
+        .group_by('year','week')
+        .order_by('year','week')
+    )
+
     
     if product_id > 0:
         query = query.filter(models.Sales.product_id == product_id)
@@ -232,7 +247,6 @@ async def get_sales_by_filter(db: db_dependency,startDate: str | None = None, en
         query = query.filter(models.Sales.date <= endDate)
 
     data = query.all()
-    print (data)
     if span == spanType.day:
         labels = [el["date"] for el in data]
         dataset = [el["total_sales"] for el in data]
@@ -243,24 +257,72 @@ async def get_sales_by_filter(db: db_dependency,startDate: str | None = None, en
         dataset = [el["total_sales"] for el in data]
         salesCount = [el["sales_count"] for el in data]
         totalUnits = [el["total_units"] for el in data]
-    else:
+    elif span == spanType.year:
         labels = [el["year"] for el in data]
+        dataset = [el["total_sales"] for el in data]
+        salesCount = [el["sales_count"] for el in data]
+        totalUnits = [el["total_units"] for el in data]
+    else:
+        labels = [str(el["year"]) +"-"+ str(el["week"]) for el in data]
         dataset = [el["total_sales"] for el in data]
         salesCount = [el["sales_count"] for el in data]
         totalUnits = [el["total_units"] for el in data]
     
     return {"labels": labels, "dataset":dataset, "totalSalesCount": sum(salesCount), "totalUnits" : sum(totalUnits), "totalRevenue": sum(dataset)}
 
+@router.get("/sales-weekly")
+async def get_weekly_sales(db: db_dependency):
+    weekly_sales = (
+        db.query(
+            extract('year', models.Sales.date).label('year'),
+            extract('week', models.Sales.date).label('week'),
+            func.sum(models.Sales.total_price).label('total_sales')
+        )
+        .group_by('year', 'week')
+        .order_by('year', 'week')
+        .all()
+    )
+
+    # Format the response data
+    data = [{
+        "year": sale.year,
+        "week": sale.week,
+        "total_sales": sale.total_sales
+    } for sale in weekly_sales]
+
+    return {"weekly_sales": data}
+
+@router.get("/sales-by-weekdays")
+async def get_sales_by_weekdays(db: db_dependency):
+    sales_by_weekdays = (
+        db.query(
+            func.DAYOFWEEK(models.Sales.date).label('weekday'),
+            func.sum(models.Sales.total_price).label('total_sales')
+        )
+        .group_by('weekday')
+        .order_by('weekday')
+        .all()
+    )
+    weekday_names = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+
+    total_revenue = db.query(func.sum(models.Sales.total_price)).scalar()
+    data = [round(sale.total_sales/total_revenue*100,1) for sale in sales_by_weekdays]
+
+    return {"labels": weekday_names, "dataset": data}
+
 #methods
 
-def makeRandomSales():
+def makeRandomSalesData(db:db_dependency):
+    customersNames = [customer["name"] for customer in db.query(models.Customer.name.label("name")).all()]
+    productsNames = [product["name"] for product in db.query(models.Product.name.label("name")).all()]
+
     randomInvoiceCount = random.randint(3,10)
     for x in range(0,randomInvoiceCount):
         salesList = []
         randomCustomer = random.choice(customersNames)
         randomSalesCount = random.randint(5, 15)
         for y in range(0, randomSalesCount):
-            randomProduct = random.choice(productNames)
+            randomProduct = random.choice(productsNames)
             randomQuantity = random.randint(1,6)
             salesList.append(
                 schemas.Sale(product_name=randomProduct, quantity = randomQuantity)
