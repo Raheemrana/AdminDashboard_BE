@@ -23,7 +23,7 @@ async def postCategory(category:schemas.Category, db: db_dependency):
     modelCategory = models.Category(**category.dict())
     db.add(modelCategory)
     db.commit()
-    return modelCategory.id
+    return f"{category.name} has been added successfully"
 
 @router.delete("/category")
 async def deleteCategories(name: str, db: db_dependency):

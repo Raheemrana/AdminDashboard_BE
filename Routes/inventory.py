@@ -50,8 +50,18 @@ async def getInventoryInsights(db: db_dependency):
 @router.get("/inventory")
 async def getInventory(db: db_dependency):
     inventory = db.query(models.Inventory).options(joinedload(models.Inventory.product)).all()
-    inventory_list = [{'productID': x.product_id, 'productName':x.product.name,  'quantity': x.stock } for x in inventory]
-    return inventory_list
+    labels = [x.product.name for x in inventory]
+    dataset = [x.stock for x in inventory]
+    lowstock = []
+    for x in inventory:
+        if x.stock < 10:
+            lowstock.append({"ID": x.product.id, "Name": x.product.name, "Stock": x.stock})
+    
+    return {
+        "labels": labels,
+        "dataset": dataset,
+        "lowstock": sorted(lowstock, key=lambda x: x["Stock"])
+    }
 
 def syncwithInventory(productID: int, quantity: int, db: db_dependency):
     inventory = db.query(models.Inventory).filter_by(product_id = productID).first()
