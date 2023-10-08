@@ -1,7 +1,7 @@
 # AdminDashboard_BE
 
 It is the backend for ***Admin Dashboard*** project built in FastAPI.
-It uses a relational databse i.e. MySQL as database, SQLAlchemy as an ORM
+It uses a relational database i.e. MySQL as database, SQLAlchemy as an ORM
 
 After cloning the project:
 Install project dependencies using pip: `pip install -r requirements.txt`.
@@ -18,7 +18,7 @@ Access the Swagger documentation at: `http://127.0.0.1:8000/docs`.
   + Products: Handles product-related endpoints.
   + Customers: Manages customer-related operations.
   + Sales:
-    `Dump Sales` Inserts sales data with random products, quantities, and dates.
+    `Dump Sales` Inserts sales data with random products, quantities, and dates.<br>
     `Sales Analysis` Provides various APIs for sales analysis, including filtering by date range, product, or category.
   + Inventory:
     `Dump Inventory` Injects inventory data for random products with dates and stock quantities.
