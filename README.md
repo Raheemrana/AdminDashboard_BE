@@ -7,7 +7,11 @@ After cloning the project:
 Install project dependencies using pip: `pip install -r requirements.txt`.<br>
 Start the server: `uvicorn main:app --reload`.
 
-Access the Swagger documentation at: `http://127.0.0.1:8000/docs`.
+Access the Swagger documentation at: `http://127.0.0.1:8000/docs`.  
+
+***Before You Begin***
+
+Before interacting with any endpoints, ensure to hit the `Dump Inventory` endpoint first. This step injects dummy data consisting of categories, products, customers and sales into the database, allowing you to interact with other endpoints effectively.  
 
 ***Project Structure***
 
@@ -23,11 +27,7 @@ Access the Swagger documentation at: `http://127.0.0.1:8000/docs`.
   + Inventory:  
     `Dump Inventory` Injects inventory data for random products with dates and stock quantities.<br>
     `Inventory` Retrieves total stock quantity for each product and identifies products with low stock (less than 10 units).<br>
-    `Inventory Insights` Provides insights into stock injection history for products.
-
-***Before You Begin***
-
-Before interacting with any endpoints, ensure to hit the Dump Inventory endpoint first. This step injects dummy data into the database, allowing you to interact with other endpoints effectively.
+    `Inventory Insights` Provides insights into stock injection history for products.  
 
 Feel free to explore and analyze sales data, manage product inventory, and gain valuable insights for better decision-making!
 
