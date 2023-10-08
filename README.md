@@ -1,6 +1,6 @@
 # AdminDashboard_BE
 
-It is the backend for ***Admin Dashboard*** project built in FastAPI.<br>
+It is the backend for ***Admin Dashboard*** project built in FastAPI.  
 It uses a relational database i.e. MySQL as database, SQLAlchemy as an ORM
 
 After cloning the project:
