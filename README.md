@@ -9,11 +9,11 @@ Start the server: `uvicorn main:app --reload`.
 
 Access the Swagger documentation at: `http://127.0.0.1:8000/docs`.  
 
-***Before You Begin***
+## ***Before You Begin***
 
 Before interacting with any endpoints, ensure to hit the `Dump Inventory` endpoint first. This step injects dummy data consisting of categories, products, customers and sales into the database, allowing you to interact with other endpoints effectively.  
 
-***Project Structure***
+## ***Project Structure***
 
 + *main.py*: The entry point of the application, defining routes for different modules.
 + Each module has the relevant end points to create or read data.
