@@ -12,26 +12,26 @@ Access the Swagger documentation at: `http://127.0.0.1:8000/docs`.
 ***Project Structure***
 
 + *main.py*: The entry point of the application, defining routes for different modules.
++ Each module has the relevant end points to create or read data.
++ *Routes/*: Directory containing modules with specific endpoints.
+  + Categories: Manages product categories.
+  + Products: Handles product-related endpoints.
+  + Customers: Manages customer-related operations.
+  + Sales:
+    `Dump Sales` Inserts sales data with random products, quantities, and dates.
+    `Sales Analysis` Provides various APIs for sales analysis, including filtering by date range, product, or category.
+  + Inventory:
+    `Dump Inventory` Injects inventory data for random products with dates and stock quantities.
+    `Inventory` Retrieves total stock quantity for each product and identifies products with low stock (less than 10 units).
+    `Inventory Insights` Provides insights into stock injection history for products.
 
-Before interacting with the end points, the first and the foremost step is to hit the very first `Dump Inventory` end point to inject dummmy data in the database.
+***Before You Begin***
 
-*main.py* file is the starting point and it defines further routes for different modules and these modules can be found in **Routes** directory inside project.
+Before interacting with any endpoints, ensure to hit the Dump Inventory endpoint first. This step injects dummy data into the database, allowing you to interact with other endpoints effectively.
 
-Each module has the relevant end points to create or read data.
+Feel free to explore and analyze sales data, manage product inventory, and gain valuable insights for better decision-making!
 
-**Categories**, **Products**, **Customers** has straight forward end points that are self explanatory.
-
-**Sales** 
--> Has `Dump Sales` end point, it inserts sales with random products, random quantity and random dates.
--> Has different apis to retrieve sales for different analysis. 
--> `Sales by filter` api responds with the sales considering the filters. You can retrieve the revenue, units_sold, sales_count and sales data by giving end or start date range or applying the filter upon any product or category.
-
-**Inventory**
--> Has `Dump Inventory` end point that injects inventory insights for random product from the databse with random dates and stocks.
--> `Inventory` end point reveals the total stock quantity for each available product and additionally it also returns the list of products that are on low stock (i.e. less than 10).
--> `Inventory Insights` end point reveals the insights of when which product's stock was injected.
-
-
+Happy coding! 🚀
 
 
 
