@@ -17,10 +17,10 @@ Access the Swagger documentation at: `http://127.0.0.1:8000/docs`.
   + Categories: Manages product categories.
   + Products: Handles product-related endpoints.
   + Customers: Manages customer-related operations.
-  + Sales:
+  + Sales:  
     `Dump Sales` Inserts sales data with random products, quantities, and dates.<br>
     `Sales Analysis` Provides various APIs for sales analysis, including filtering by date range, product, or category.
-  + Inventory:
+  + Inventory:  
     `Dump Inventory` Injects inventory data for random products with dates and stock quantities.<br>
     `Inventory` Retrieves total stock quantity for each product and identifies products with low stock (less than 10 units).<br>
     `Inventory Insights` Provides insights into stock injection history for products.
