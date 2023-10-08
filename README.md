@@ -11,6 +11,8 @@ Access the Swagger documentation at: `http://127.0.0.1:8000/docs`.
 
 ## ***Before You Begin***
 
+Make sure to set up MySQL and update the DB url in `database.py`
+
 Before interacting with any endpoints, ensure to hit the `Dump Inventory` endpoint first. This step injects dummy data consisting of categories, products, customers and sales into the database, allowing you to interact with other endpoints effectively.  
 
 ## ***Project Structure***
