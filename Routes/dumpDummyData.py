@@ -26,9 +26,11 @@ async def dumpDummyData(db: db_dependency):
             if categoryId == None:
                 print(f"{categoryId}, doesn't exist")
                 continue
-            counter =  counter + 1
-            db.add(models.Product(name = product.name, price=product.price, category_id= categoryId))
-        db.commit()
+            productModel = models.Product(name = product.name, price=product.price, category_id= categoryId)
+            db.add(productModel)
+            db.commit()
+            db.add(models.Inventory(product_id= product.id, stock = 0))
+            db.commit()
 
         # customers
         for customer in dummyData.customersData:
@@ -42,5 +44,5 @@ async def dumpDummyData(db: db_dependency):
         return {f"Error encountered while dumping data, error = {e}"}
     else: 
         return {
-            "message":"Data dumped Successfully",
+            "message":"Data has been dumped Successfully",
         }

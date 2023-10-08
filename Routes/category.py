@@ -9,8 +9,6 @@ db_dependency = Annotated[Session, Depends(get_db)]
 
 router = APIRouter(tags=["Category"])
 
-# this is the dummy data to load at first application run
-
 @router.get("/categories")
 async def getCategories(db: db_dependency):
     categories = db.query(models.Category).\
